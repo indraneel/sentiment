@@ -3,7 +3,8 @@ import React,{
     Text,
     StyleSheet,
     ListView,
-    Dimensions
+    Dimensions,
+    AsyncStorage
 } from "react-native";
 import {Actions} from "react-native-router-flux";
 import Button from 'react-native-button';
@@ -11,6 +12,8 @@ import Swipeout from 'react-native-swipeout';
 import { connect } from 'react-redux'
 // import rows from '../data';
 import rowGenerator from '../utils/rowGenerator';
+import { persistStore, autoRehydrate } from 'redux-persist';
+import { clearAllFeels } from '../actions';
 
 const styles = StyleSheet.create({
     container: {
@@ -84,6 +87,12 @@ class LogScreen extends React.Component {
         }
     }
 
+    // componentWillMount() {
+    //     persistStore(store, {storage: AsyncStorage}, (err, state) => {
+    //         this.setState({ rehydrated: true })
+    //     });
+    // }
+
     allowScroll(scrollEnabled) {
         this.setState({ scrollEnabled: scrollEnabled })
     }
@@ -122,11 +131,17 @@ class LogScreen extends React.Component {
             </Swipeout>
     }
 
+    clearAll() {
+        this.context.persistor.purgeAll();
+        this.props.dispatch(clearAllFeels());
+        rows = rowGenerator(this.props.feels);
+        this.updateDataSource(rows);
+    }
+
     render(){
         return (
             <View style={styles.container}>
                 <View style={styles.statusbar}/>
-
                 <ListView
                   scrollEnabled={this.state.scrollEnabled}
                   dataSource={this.state.dataSource}
@@ -139,9 +154,21 @@ class LogScreen extends React.Component {
                 > 
                     Log your mood
                 </Button>
+                <Button
+                    containerStyle={styles.nextButtonContainer}
+                    style={styles.nextButtonText}
+                    onPress={() => this.clearAll() }
+                > 
+                    Purge
+                </Button>
+
             </View>
         );
     }
 }
+
+LogScreen.contextTypes = {
+  persistor: React.PropTypes.object.isRequired
+};
 
 export default connect((state) => state)(LogScreen);

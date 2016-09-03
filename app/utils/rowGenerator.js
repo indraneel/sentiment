@@ -10,6 +10,9 @@ var btnsTypes = [
 
 export default function rowGenerator(arr) {
 	let output = [];
+	if (!Array.isArray(arr)) {
+		arr = Object.keys(arr).map(key => arr[key])
+	}
 	for (let i = arr.length - 2; i >= 0; i--) {
 		let emoji = arr[i].type;
 		let text = arr[i].description === undefined ? 

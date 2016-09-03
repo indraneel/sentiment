@@ -4,13 +4,19 @@ import React, {
     TextInput,
     StyleSheet,
     Dimensions,
+    AsyncStorage,
     DeviceEventEmitter
 } from "react-native";
 import {Actions} from "react-native-router-flux";
 import Button from 'react-native-button';
 import { connect } from 'react-redux'
 import { updateSelectedFeelDescription, addFeel } from '../actions';
+import { persistStore } from 'redux-persist'
+import logLocalStore from '../utils/logLocalStore'
 
+const {
+    State: TextInputState
+} = TextInput;
 
 const styles = StyleSheet.create({
     container: {
@@ -44,7 +50,8 @@ const styles = StyleSheet.create({
         backgroundColor:'white',
         borderColor: 'white',
         borderWidth: 1,
-        alignItems:'stretch'
+        alignItems:'stretch',
+        fontSize: 24,
     },
     nextButtonContainer: {
         width: Dimensions.get('window').width,
@@ -60,6 +67,7 @@ const styles = StyleSheet.create({
 });
 
 class InputDescription extends React.Component {
+    contextTypes
     constructor(props) {
         super(props);
         this.state = {
@@ -77,7 +85,7 @@ class InputDescription extends React.Component {
     }
 
     keyboardWillHide (e) {
-        this.setState({visibleHeight: Dimensions.get('window').height})
+        // this.setState({visibleHeight: Dimensions.get('window').height})
     }
 
     handleType(description, currentFeel) {
@@ -85,14 +93,23 @@ class InputDescription extends React.Component {
         this.props.dispatch(updateSelectedFeelDescription(description, currentFeel));
     }
 
-    handleDone() {
-        this.props.dispatch(addFeel());
+    handleDone(latestFeelId) {
+        TextInputState.blurTextInput(TextInputState.currentlyFocusedField());
+        this.props.dispatch(addFeel(latestFeelId));
         this.props.dispatch(Actions.logScreen);
+        console.log("state before\n~~\n", this.context.store.getState());
+        console.log("localstore before\n~~\n");
+        logLocalStore();
+        persistStore(this.context.store, {storage: AsyncStorage}, (err, state) => {
+            console.log("IDS - cWU - persisted");
+            logLocalStore();
+        });
     }
 
     render(){
         const { feels } = this.props;
         const latestFeel = feels[feels.length - 1];
+        const latestFeelId = feels.length-1 >= 0 ? feels.length-1 : 0;
 
         return (
             <View style={[{'height': this.state.visibleHeight}, styles.container ]}>
@@ -114,7 +131,7 @@ class InputDescription extends React.Component {
                 <Button
                     containerStyle={styles.nextButtonContainer}
                     style={styles.nextButtonText}
-                    onPress={() => this.handleDone()}
+                    onPress={() => this.handleDone(latestFeelId)}
                 > 
                     Done
                 </Button>
@@ -122,5 +139,10 @@ class InputDescription extends React.Component {
         );
     }
 }
+
+InputDescription.contextTypes = {
+  store: React.PropTypes.object.isRequired,
+  persistor: React.PropTypes.object.isRequired
+};
 
 export default connect((state) => state)(InputDescription);

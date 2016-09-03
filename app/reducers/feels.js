@@ -3,7 +3,11 @@ import {
 	SELECT_FEEL,
 	UPDATE_SELECTED_FEEL_DESCRIPTION,
 	CLEAR_SELECTED_FEEL,
+	CLEAR_ALL_FEELS,
 } from '../actions';
+
+import {REHYDRATE} from 'redux-persist/constants'
+
 
 export default function feels(state = [], action) {
 	switch(action.type) {
@@ -40,7 +44,18 @@ export default function feels(state = [], action) {
 			)
 		case CLEAR_SELECTED_FEEL:
 			return Object.assign({}, state, {
-			});
+		});
+
+		case CLEAR_ALL_FEELS:
+			return [];
+
+		case REHYDRATE:
+			console.log("REHYDRATE");
+			let incoming = action.payload.feels;
+			if (incoming) {
+				return state.length >= incoming.length ? [...state] : [...incoming];
+			}
+			return state;
 		default:
 			return state;
 	}

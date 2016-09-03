@@ -24,9 +24,10 @@ import {
   Actions,
   Reducer
 } from 'react-native-router-flux';
-import SelectScreen from './components/SelectScreen';
-import InputDescriptionScreen from './components/InputDescriptionScreen';
-import LogScreen from './components/LogScreen';
+import SelectScreen from './containers/SelectScreen';
+import InputDescriptionScreen from './containers/InputDescriptionScreen';
+import LogScreen from './containers/LogScreen';
+import LoadingScreen from './containers/LoadingScreen';
 import * as AppActions from './actions'
 const RouterWithRedux = connect()(Router);
 // import reducers from './reducers';
@@ -44,13 +45,18 @@ const RouterWithRedux = connect()(Router);
 class App extends React.Component {
   render() {
     const { feels, routes } = this.props;
+    if (this.props.loading) {
+      return (
+        <LoadingScreen />
+      )
+    }
     return (
       <RouterWithRedux sceneStyle={ {backgroundColor: '#5D2757'} }>
         <Scene key="rootNav">
           <Scene
             key="selectScreen"
             component={SelectScreen}
-            title="How do you feel?"
+            title="Tap an emoji to log how you feel"
             initial={true}
             hideNavBar={true}
             type={"reset"} 
